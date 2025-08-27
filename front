@@ -1,0 +1,425 @@
+import {
+  Box,
+  Divider,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+} from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
+import { useState, useMemo } from "react";
+import { FaHelmetSafety } from "react-icons/fa6";
+import { MdOutlineModelTraining } from "react-icons/md";
+import { TbTruckDelivery } from "react-icons/tb";
+
+// --- Dados de Dispatchs por Categoria e Cor (Organizados em um único objeto) ---
+const allDispatchData = {
+  Segurança: [
+    { data: "2025-01-15", color: "green" },
+    { data: "2025-01-20", color: "red" },
+    { data: "2025-02-10", color: "yellow" },
+    { data: "2025-02-25", color: "green" },
+    { data: "2025-03-05", color: "green" },
+    { data: "2025-04-12", color: "green" },
+    { data: "2025-05-20", color: "red" },
+    { data: "2025-06-08", color: "yellow" },
+    { data: "2025-07-10", color: "green" },
+    { data: "2025-08-15", color: "green" },
+    { data: "2025-10-10", color: "red" },
+    { data: "2025-11-20", color: "yellow" },
+    { data: "2025-01-03", color: "green" },
+    { data: "2025-01-04", color: "green" },
+    { data: "2025-01-05", color: "green" },
+    { data: "2025-01-06", color: "green" },
+    { data: "2025-01-07", color: "green" },
+    { data: "2025-01-08", color: "green" },
+    { data: "2025-01-09", color: "green" },
+    { data: "2025-01-10", color: "green" },
+    { data: "2025-01-11", color: "green" },
+    { data: "2025-01-12", color: "green" },
+    { data: "2025-01-13", color: "green" },
+    { data: "2025-01-14", color: "green" },
+    { data: "2025-01-16", color: "red" },
+    { data: "2025-01-17", color: "yellow" },
+    { data: "2025-01-18", color: "green" },
+    { data: "2025-01-19", color: "red" },
+  ],
+  Qualidade: [
+    { data: "2025-01-15", color: "green" },
+    { data: "2025-01-20", color: "red" },
+    { data: "2025-02-10", color: "yellow" },
+    { data: "2025-02-25", color: "green" },
+    { data: "2025-03-05", color: "green" },
+    { data: "2025-04-12", color: "green" },
+    { data: "2025-05-20", color: "red" },
+    { data: "2025-06-08", color: "yellow" },
+    { data: "2025-07-10", color: "green" },
+    { data: "2025-08-15", color: "green" },
+    { data: "2025-10-10", color: "red" },
+    { data: "2025-11-20", color: "yellow" },
+    { data: "2025-01-03", color: "green" },
+    { data: "2025-01-04", color: "green" },
+    { data: "2025-01-05", color: "green" },
+    { data: "2025-01-06", color: "green" },
+    { data: "2025-01-07", color: "green" },
+    { data: "2025-01-08", color: "green" },
+    { data: "2025-01-09", color: "green" },
+    { data: "2025-01-10", color: "green" },
+    { data: "2025-01-11", color: "green" },
+    { data: "2025-01-12", color: "green" },
+    { data: "2025-01-13", color: "green" },
+    { data: "2025-01-14", color: "green" },
+    { data: "2025-01-16", color: "red" },
+    { data: "2025-01-17", color: "yellow" },
+    { data: "2025-01-18", color: "green" },
+    { data: "2025-01-19", color: "red" },
+  ],
+
+  Entrega: [
+    { data: "2025-01-15", color: "green" },
+    { data: "2025-01-20", color: "red" },
+    { data: "2025-02-10", color: "yellow" },
+    { data: "2025-02-25", color: "green" },
+    { data: "2025-03-05", color: "green" },
+    { data: "2025-04-12", color: "green" },
+    { data: "2025-05-20", color: "red" },
+    { data: "2025-06-08", color: "yellow" },
+    { data: "2025-07-10", color: "green" },
+    { data: "2025-08-15", color: "green" },
+    { data: "2025-10-10", color: "red" },
+    { data: "2025-11-20", color: "yellow" },
+    { data: "2025-01-03", color: "green" },
+    { data: "2025-01-04", color: "green" },
+    { data: "2025-01-05", color: "green" },
+    { data: "2025-01-06", color: "green" },
+    { data: "2025-01-07", color: "green" },
+    { data: "2025-01-08", color: "green" },
+    { data: "2025-01-09", color: "green" },
+    { data: "2025-01-10", color: "green" },
+    { data: "2025-01-11", color: "green" },
+    { data: "2025-01-12", color: "green" },
+    { data: "2025-01-13", color: "green" },
+    { data: "2025-01-14", color: "green" },
+    { data: "2025-01-16", color: "red" },
+    { data: "2025-01-17", color: "yellow" },
+    { data: "2025-01-18", color: "green" },
+    { data: "2025-01-19", color: "red" },
+  ],
+};
+
+const getMonthName = (monthNumber) => {
+  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  return months[monthNumber - 1];
+};
+
+const getColorForStatus = (statusData) => {
+  if (statusData.some((d) => d.color === 'red')) {
+    return '#EF5350';
+  }
+  if (statusData.some((d) => d.color === 'yellow')) {
+    return '#FFCA28';
+  }
+  if (statusData.some((d) => d.color === 'green')) {
+    return '#66BB6A';
+  }
+  return '#B0BEC5';
+};
+
+const processDataForMonthChips = (category) => {
+  const categoryData = allDispatchData[category] || [];
+  const groupedByMonth = categoryData.reduce((acc, curr) => {
+    const month = new Date(curr.data).getMonth() + 1;
+    if (!acc[month]) {
+      acc[month] = [];
+    }
+    acc[month].push(curr);
+    return acc;
+  }, {});
+
+  const allMonths = Array.from({ length: 12 }, (_, i) => i + 1);
+  return allMonths.map(month => {
+    const monthData = groupedByMonth[month] || [];
+    return {
+      month: getMonthName(month),
+      color: getColorForStatus(monthData),
+      monthNumber: month,
+    };
+  });
+};
+
+const getDaysInMonth = (month, year, category) => {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const categoryData = allDispatchData[category] || [];
+
+  return days.map(day => {
+    const dayData = categoryData.filter(d =>
+      new Date(d.data).getDate() === day && new Date(d.data).getMonth() + 1 === month && new Date(d.data).getFullYear() === year
+    );
+    return {
+      day,
+      count: dayData.length,
+      color: getColorForStatus(dayData),
+    };
+  });
+};
+
+const CardTemplate = ({ title, monthsData, onClickMonth, icon }) => (
+  <Card
+    sx={{
+      ml:0.4,
+      width: '31.5%',
+      borderRadius: 4,
+      boxShadow: 6,
+      bgcolor: '#fff',
+      color: '#000',
+      p: 2,
+    }}
+  >
+    <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+        {title}
+        <Box sx={{ mt: -2.5, ml: 12.5 }}>
+          {icon}
+        </Box>
+      </Typography>
+      <Divider sx={{ my: 2, bgcolor: '#e0e0e0' }} />
+      <Box sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 2,
+        justifyContent: 'flex-start',
+        alignContent: 'flex-start',
+      }}>
+        {monthsData.map((data, index) => (
+          <Chip
+            key={index}
+            label={data.month}
+            onClick={() => onClickMonth(data.monthNumber, data.month)}
+            sx={{
+              
+              bgcolor: data.color,
+              color: '#fff',
+              fontWeight: 'bold',
+              width: "30.4%",
+              height: 60,
+              fontSize: '1rem',
+              borderRadius: '12px',
+              transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+              '&:hover': {
+                transform: 'scale(1.05)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                bgcolor: data.color,
+              },
+              animation: `fadeIn 0.5s ease-out ${index * 0.1}s forwards`,
+              opacity: 0,
+            }}
+          />
+        ))}
+      </Box>
+    </CardContent>
+  </Card>
+);
+
+export default function SQDCDashboard() {
+  const [openModal, setOpenModal] = useState(false);
+  const [modalData, setModalData] = useState({ category: '', monthName: '', monthNumber: null });
+  const currentYear = 2025;
+
+  const handleOpenModal = (category, monthNumber, monthName) => {
+    setModalData({ category, monthName, monthNumber });
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
+  const segurançaData = useMemo(() => processDataForMonthChips("Segurança"), []);
+  const qualidadeData = useMemo(() => processDataForMonthChips("Qualidade"), []);
+  const entregaData = useMemo(() => processDataForMonthChips("Entrega"), []);
+  const daysInSelectedMonth = useMemo(() => {
+    if (modalData.monthNumber) {
+      return getDaysInMonth(modalData.monthNumber, currentYear, modalData.category);
+    }
+    return [];
+  }, [modalData.monthNumber, currentYear, modalData.category]);
+
+  return (
+    <Box sx={{ flexGrow: 1, p: 4 }}>
+      <Box
+        sx={{
+          height: '50%',
+          flexGrow: 1,
+          p: 4,
+          display: 'flex',
+          gap: 4,
+          flexWrap: 'wrap',
+        }}
+      >
+        <CardTemplate
+          title="Segurança"
+          monthsData={segurançaData}
+          onClickMonth={(monthNumber, monthName) => handleOpenModal("Segurança", monthNumber, monthName)}
+          icon={
+            <Box
+              sx={{
+
+              }}
+            >
+              <FaHelmetSafety size={18} />
+            </Box>
+          }
+        />
+
+        <CardTemplate
+          title="Qualidade"
+          monthsData={qualidadeData}
+          onClickMonth={(monthNumber, monthName) => handleOpenModal("Qualidade", monthNumber, monthName)}
+          icon={
+            <Box
+              sx={{
+                ml: -1,
+                mt: -2.8
+              }}
+            >
+              <MdOutlineModelTraining size={21} />
+            </Box>
+          }
+        />
+
+        <CardTemplate
+          title="Entrega"
+          monthsData={entregaData}
+          onClickMonth={(monthNumber, monthName) => handleOpenModal("Entrega", monthNumber, monthName)}
+          icon={
+            <Box
+              sx={{
+                ml: -3.3,
+                mt:-2
+              }}
+            >
+              <TbTruckDelivery size={20} />
+            </Box>
+          }
+        />
+      </Box>
+      <Dialog
+        open={openModal}
+        onClose={handleCloseModal}
+        fullWidth
+        maxWidth="lg"
+        sx={{
+          "& .MuiPaper-root": {
+            width: "890px",
+            height: "750px",
+            borderRadius: 4,
+            boxShadow: 50,
+            bgcolor: '#ffffffff',
+            color: '#000000ff',
+            p: 2,
+          },
+        }}
+      >
+        <DialogTitle sx={{ m: 0, p: 2, pb: 0, fontWeight: 'bold', fontSize: 16 }}>
+          {`${modalData.category} | ${modalData.monthName}`}
+          <Divider sx={{ my: 2, bgcolor: '#e0e0e0' }} />
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseModal}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: '#fff',
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 3, pt: 1, borderTop: 'none', borderColor: '#4a647d' }}>
+          <Grid container spacing={1} justifyContent="center">
+            {daysInSelectedMonth.map((dayData, index) => (
+              <Grid item key={index} xs={2}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Chip
+                    label={dayData.day}
+                    sx={{
+                      width: 120,
+                      height: 85,
+                      borderRadius: '8px',
+                      bgcolor: dayData.color,
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'transform 0.2s ease',
+                      '&:hover': {
+                        transform: 'scale(1.1)',
+                        bgcolor: dayData.color,
+                      },
+                      cursor: 'pointer',
+                    }}
+                  />
+                  {dayData.count > 0 && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: -8,
+                        right: -8,
+                        minWidth: 18,
+                        height: 18,
+                        bgcolor: '#1a2734',
+                        color: '#fff',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        border: '2px solid #2c3e50',
+                        p: '2px',
+                      }}
+                    >
+                      {dayData.count}
+                    </Box>
+                  )}
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </DialogContent>
+      </Dialog>
+    </Box>
+  );
+}
+
+// Estilos de animação para os chips
+const style = document.createElement('style');
+style.innerHTML = `
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+document.head.appendChild(style);
